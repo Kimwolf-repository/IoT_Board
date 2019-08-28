@@ -223,6 +223,7 @@ static void iotb_event_handler(void* arg)
     }
 }
 
+//开始事件处理
 rt_err_t iotb_event_start(void)
 {
     rt_thread_t iotb_event_tid;

@@ -93,8 +93,8 @@ static const uint16_t menu_refresh_time[IOTB_LCD_MENU_MAX + 1] =
     99    /* menu14 enter pm mode*/
 };
 
-static volatile iotb_lcd_menu_t lcd_instance[IOTB_LCD_MENU_MAX + 1];
-static const iotb_lcd_handle iotb_lcd_handle_array[IOTB_LCD_MENU_MAX + 1] = 
+static volatile iotb_lcd_menu_t lcd_instance[IOTB_LCD_MENU_MAX + 1];	//一共有15个屏幕
+static const iotb_lcd_handle iotb_lcd_handle_array[IOTB_LCD_MENU_MAX + 1] = 	//15个回调函数
 {
     RT_NULL,
     (iotb_lcd_handle)iotb_lcd_show_index_page,
@@ -124,35 +124,31 @@ void iotb_lcd_event_put(iotb_lcd_event_t event)
 }
 
 /** iotb_lcd_event_get
- * @param event_t: lcd event type
- * @param   event: the event value getting from system
- * @param     clr: 0 - do not clear event flag; 1 - clear event flag
- * @param timeout: set operate time
- * @return RT_EOK - success; others - failed
+ * @param set: 接收线程感兴趣的事件
+ * @param event: 从系统获取的事件
+ * @param clr:0-不清除事件标志，1-清除事件标志
+ * @param timeout: 设置运行时间
+ * @return RT_EOK-成功; others-失败
 */
 rt_err_t iotb_lcd_event_get(uint32_t set,
                             uint32_t *event,
                             uint8_t clr,
-                            uint32_t timeout)
-{
+                            uint32_t timeout){
     rt_err_t rst = RT_EOK;
-    if (clr)
-    {
+    if (clr){
+		//开始接收事件，参数为：LCD事件句柄，传入的感兴趣的事件，或执行并且清除标志，超时时间
         rst = rt_event_recv(&lcd_event,
                             set,
                             RT_EVENT_FLAG_OR | RT_EVENT_FLAG_CLEAR,
                             timeout, (rt_uint32_t *)event);
-    }
-    else
-    {
+    }else{
         rst = rt_event_recv(&lcd_event,
                             set,
                             RT_EVENT_FLAG_OR,
                             timeout, (rt_uint32_t *)event);
     }
 
-    if (rst == RT_EOK)
-    {
+    if (rst == RT_EOK){
         LOG_D("recv event 0x%x", *event);
     }
     return rst;
@@ -166,6 +162,7 @@ void iotb_lcd_thr_set_cycle(uint16_t time)
     rt_hw_interrupt_enable(level);
 }
 
+//LCD线程运行函数，重要函数
 static void iotb_lcd_show(void *arg) /* dynamic thread */
 {
     uint8_t menu_index = 1;
@@ -175,30 +172,32 @@ static void iotb_lcd_show(void *arg) /* dynamic thread */
     while (1)
     {
         LOG_I("When power-on show LCD menu1");
-
-        lcd_instance[menu_index].content_type = IOTB_LCD_STATIC_CONTENT;
-        lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_ENTER;
+		//首次运行，menu_index = 1，
+        lcd_instance[menu_index].content_type = IOTB_LCD_STATIC_CONTENT;	//首页静态
+        lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_ENTER;		//开始事件
+		//运行回调函数 iotb_lcd_show_index_page，传入参数为它自己本身的句柄
+		//静态页面，显示信息
         lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
+		//这段逻辑没看懂，修改了内容属性和事件
+        lcd_instance[menu_index].content_type = IOTB_LCD_DYNAMIC_CONTENT;	//修改为动态内容
+        lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;		//修改为没事件
+        lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);	//再运行一次，但是函数中有判断，不会运行第二次
 
-        lcd_instance[menu_index].content_type = IOTB_LCD_DYNAMIC_CONTENT;
-        lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;
-        lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
-
-        while (1)
+        while (1)	//开始循环
         {
+			//响应除了开始或停止获取设备信息事件，，读到后会清除事件标志，0秒超时时间
             if (iotb_lcd_event_get(0xffffffff &
                 (~(IOTB_LCD_EVENT_STOP_DEV_INFO_GET | IOTB_LCD_EVENT_START_DEV_INFO_GET)),
                 &event, 1, 0) == RT_EOK)
             {
                 LOG_D("lcd get event (0x%x); all :%08x", event, 0xffffffff &
                 (~(IOTB_LCD_EVENT_STOP_DEV_INFO_GET | IOTB_LCD_EVENT_START_DEV_INFO_GET)));
-                if (event & IOTB_LCD_EVENT_NEXT)
+                if (event & IOTB_LCD_EVENT_NEXT)	//如果是下一个屏幕事件
                 {
-                    menu_index = iotb_lcd_get_menu_index();
-                    lcd_instance[menu_index].content_type = IOTB_LCD_CONTENT_NONE;
-                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_EXIT;
-                    /* exit current menu, then enter next menu */
-                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
+                    menu_index = iotb_lcd_get_menu_index();		//获取当前显示的页面编号
+                    lcd_instance[menu_index].content_type = IOTB_LCD_CONTENT_NONE;	//标记当前是非活动状态
+                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_EXIT;	//当前事件为退出事件
+                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);	//运行屏幕回调函数
 
                     menu_index ++;
                     if (menu_index == 9) /* WeChat Scan */
@@ -226,32 +225,32 @@ static void iotb_lcd_show(void *arg) /* dynamic thread */
                         menu_index = 1; /* skip `IN PM PAGE` */
                     }
 
-                    menu_index = menu_index > IOTB_LCD_MENU_MAX ? 1 : menu_index;
-                    iotb_lcd_update_menu_index(menu_index);
+                    menu_index = menu_index > IOTB_LCD_MENU_MAX ? 1 : menu_index;	//超过最大就置一
+                    iotb_lcd_update_menu_index(menu_index);		//保存当前页面编号
                     // LOG_I("Will show menu %d", menu_index);
 
-                    lcd_instance[menu_index].content_type = IOTB_LCD_STATIC_CONTENT;
-                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_ENTER;
+                    lcd_instance[menu_index].content_type = IOTB_LCD_STATIC_CONTENT;	//设置为静态显示
+                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_ENTER;		//事件未确认事件
                     // LOG_I("show menu %d ENTER", menu_index);
-                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
+                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);	//显示当前的页面
                     // LOG_I("show menu %d ENTER FINISH", menu_index);
-                    lcd_instance[menu_index].content_type = IOTB_LCD_DYNAMIC_CONTENT;
-                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;
+                    lcd_instance[menu_index].content_type = IOTB_LCD_DYNAMIC_CONTENT;		//设置为动态页面
+                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;			//当前没有事件
                     LOG_I("exit response lcd next event");
 
-                    cnt = lcd_instance[menu_index].refresh_time;
+                    cnt = lcd_instance[menu_index].refresh_time;	//获取当前计数
                     // break;
                 }
-                else if (event & IOTB_LCD_EVENT_EXIT)
+                else if (event & IOTB_LCD_EVENT_EXIT)	//如果是退出事件
                 {
-                    lcd_instance[menu_index].content_type = IOTB_LCD_CONTENT_NONE;
-                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_EXIT;
-                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
+                    lcd_instance[menu_index].content_type = IOTB_LCD_CONTENT_NONE;	//设置当前显示类型为无
+                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_EXIT;	//设置事件是退出事件
+                    lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);	//显示
                     /* set current menu event as NONE, and set show NONE */
-                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;
+                    lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;	//设置事件无
                     cnt = 0;
                 }
-                else if ((event & IOTB_LCD_EVENT_SMARTCONFIG_START) ||
+                else if ((event & IOTB_LCD_EVENT_SMARTCONFIG_START) ||		//smart config 开始等事件
                         (event & IOTB_LCD_EVENT_SMARTCONFIG_STARTED) ||
                         (event & IOTB_LCD_EVENT_SMARTCONFIG_FINISH))
                 {
@@ -288,14 +287,14 @@ static void iotb_lcd_show(void *arg) /* dynamic thread */
                     lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_NONE;
                     cnt = lcd_instance[menu_index].refresh_time;
                 }
-                else if ((event & IOTB_LCD_EVENT_PM_START) || (event & IOTB_LCD_EVENT_PM_WKUP))
+                else if ((event & IOTB_LCD_EVENT_PM_START) || (event & IOTB_LCD_EVENT_PM_WKUP))	//低功耗开始或者唤醒
                 {
                     menu_index = iotb_lcd_get_menu_index();
 
-                    /* will enter wechat scan page, first exit current page */
+                    //将进入微信扫描页面，首先退出当前页面
                     lcd_instance[menu_index].content_type = IOTB_LCD_CONTENT_NONE;
                     lcd_instance[menu_index].current_event = IOTB_LCD_EVENT_EXIT;
-                    /* exit current menu, then enter next menu */
+                    //退出当前菜单，然后进入下一个菜单
                     lcd_instance[menu_index].lcd_handle((void*)&lcd_instance[menu_index]);
 
                     if (event & IOTB_LCD_EVENT_PM_START)
@@ -369,18 +368,12 @@ void iotb_lcd_show_startup_page(void)
 static void iotb_lcd_show_index_page(iotb_lcd_menu_t *lcd_menu)
 {
     LOG_D("show [index page]");
-    if (lcd_menu->content_type == IOTB_LCD_STATIC_CONTENT)
+    if (lcd_menu->content_type == IOTB_LCD_STATIC_CONTENT)	//调用前已近被设置了是个静态页面，后边会修改，就不会在运行一次了
     {
         char buf[21];
-
-        /* clear lcd */
-        lcd_clear(WHITE);
-
-        /* set the background color and foreground color */
-        lcd_set_color(WHITE, BLACK);
-
+        lcd_clear(WHITE);	//清屏
+        lcd_set_color(WHITE, BLACK);	//设置前景色和背景色
         lcd_show_string(48, 8, 32, "IoT Board");
-
         rt_memset(buf, 0x0, sizeof(buf));
         rt_snprintf(buf, sizeof(buf), "RT-Thread: %d.%d.%d", RT_VERSION, RT_SUBVERSION, RT_REVISION);
         lcd_show_string(24, 59 - 2, 24, buf);
@@ -405,7 +398,7 @@ static void iotb_lcd_show_sensor(iotb_lcd_menu_t *lcd_menu)
     char buf[48];
     iotb_sensor_data_t sensor_data;
 
-    iotb_sensor_data_upload(iotb_sensor_data_result_get(), &sensor_data);
+    iotb_sensor_data_upload(iotb_sensor_data_result_get(), &sensor_data);	//获取传感器数据
 
     if (lcd_menu->content_type == IOTB_LCD_STATIC_CONTENT)
     {
@@ -1364,46 +1357,48 @@ static void iotb_lcd_show_in_lowpower(iotb_lcd_menu_t *lcd_menu)
 
 void iotb_lcd_update_menu_index(uint8_t menu_index)
 {
-    rt_mutex_take(lcd_mutex, RT_WAITING_FOREVER);
-    iotb_lcd_menu_index = menu_index;
-    rt_mutex_release(lcd_mutex);
+    rt_mutex_take(lcd_mutex, RT_WAITING_FOREVER);	//等待获取锁
+    iotb_lcd_menu_index = menu_index;				//保存当前页面编号
+    rt_mutex_release(lcd_mutex);					//释放锁
 }
 
 uint8_t iotb_lcd_get_menu_index(void)
 {
     uint8_t menu_index;
-    rt_mutex_take(lcd_mutex, RT_WAITING_FOREVER);
-    menu_index = iotb_lcd_menu_index;
-    rt_mutex_release(lcd_mutex);
+    rt_mutex_take(lcd_mutex, RT_WAITING_FOREVER);	//等待获取锁
+    menu_index = iotb_lcd_menu_index;	//获取当前显示的页面编号
+    rt_mutex_release(lcd_mutex);		//释放锁
     return menu_index;
 }
 
+//初始化屏幕
 static void iotb_lcd_menu_init(void)
 {
     rt_memset((void*)lcd_instance, 0x0, sizeof(lcd_instance));
 
     for (int i = 1; i < IOTB_LCD_MENU_MAX + 1; i++)//iotb_lcd_handle_array
     {
-        lcd_instance[i].menu = i;
-        lcd_instance[i].refresh_time = menu_refresh_time[i];
-        lcd_instance[i].content_type = IOTB_LCD_CONTENT_NONE;
-        lcd_instance[i].current_event = IOTB_LCD_EVENT_NONE;
-        lcd_instance[i].lcd_handle = iotb_lcd_handle_array[i];
+        lcd_instance[i].menu = i;	//顺序初始化菜单编号
+        lcd_instance[i].refresh_time = menu_refresh_time[i];	//配置每个页面的刷新时间
+        lcd_instance[i].content_type = IOTB_LCD_CONTENT_NONE;	//先都初始化为空页面
+        lcd_instance[i].current_event = IOTB_LCD_EVENT_NONE;	//先都初始化为没有事件
+        lcd_instance[i].lcd_handle = iotb_lcd_handle_array[i];	//绑定回调函数
     }
 }
 
+//LCD开始任务，这里完成初始化，创建LCD线程
 void iotb_lcd_start(void)
 {
-    rt_thread_t iotb_lcd_tid;
+    rt_thread_t iotb_lcd_tid;	//创建一个lcd线程
 
-    iotb_lcd_menu_init();
+    iotb_lcd_menu_init();	//初始化屏幕
 
-    lcd_mutex = rt_mutex_create("lcd_mutex", RT_IPC_FLAG_FIFO);
+    lcd_mutex = rt_mutex_create("lcd_mutex", RT_IPC_FLAG_FIFO);	//创建一个锁，先进先出
     RT_ASSERT(lcd_mutex != RT_NULL);
 
-    rt_event_init(&lcd_event, "lcd_event", RT_IPC_FLAG_FIFO);
+    rt_event_init(&lcd_event, "lcd_event", RT_IPC_FLAG_FIFO);	//创建LCD事件
 
-    /* create lcd show thread 'iotb_lcd_show'*/
+    //创建LCD显示任务，函数为iotb_lcd_show
     iotb_lcd_tid = rt_thread_create("lcd_thr",
                                     iotb_lcd_show,
                                     RT_NULL,
@@ -1411,6 +1406,7 @@ void iotb_lcd_start(void)
 
     if (iotb_lcd_tid != RT_NULL)
     {
+		//开始线程调度
         rt_thread_startup(iotb_lcd_tid);
     }
 }

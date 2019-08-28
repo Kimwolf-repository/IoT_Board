@@ -26,24 +26,24 @@
 
 static struct rt_workqueue * iotb_work_hd = RT_NULL;
 
-//°å¼¶¹¤×÷¶ÓÁĞ½á¹¹Ìå
+//å·¥ä½œé˜Ÿåˆ—ç»“æ„ä½“
 typedef struct
 {
-    struct rt_work work;	//ÄÚºËÌá¹©µÄ¹¤×÷½á¹¹Ìå£¬°üº¬º¯ÊıÖ¸ÕëºÍ´«Èë²ÎÊı
-    void (*fun)(void *parameter);	//¶îÍâµÄº¯ÊıÖ¸Õë£¿
-    void *parameter;				//¶îÍâµÄ²ÎÊı£¿
+    struct rt_work work;	//å†…æ ¸æä¾›çš„å·¥ä½œç»“æ„ä½“ï¼ŒåŒ…å«å‡½æ•°æŒ‡é’ˆå’Œä¼ å…¥å‚æ•°
+    void (*fun)(void *parameter);	//é¢å¤–çš„å‡½æ•°æŒ‡é’ˆï¼Ÿ
+    void *parameter;				//é¢å¤–çš„å‚æ•°ï¼Ÿ
 } iotb_work_t;
 
-//°å¼¶¹¤×÷¶ÓÁĞº¯Êı
-//work,ÄÚºËÌá¹©µÄ¹¤×÷½á¹¹ÌåÖ¸Õë
-//work_data£¬´«Èë²ÎÊı
+//æ¿çº§å·¥ä½œé˜Ÿåˆ—å‡½æ•°
+//work,å†…æ ¸æä¾›çš„å·¥ä½œç»“æ„ä½“æŒ‡é’ˆ
+//work_dataï¼Œä¼ å…¥å‚æ•°
 static void iotb_workqueue_fun(struct rt_work *work, void *work_data)
 {
-	//´«ÈëµÄwork_dataÊÇiotb_work_t* £¿
+	//ä¼ å…¥çš„work_dataæ˜¯iotb_work_t* ï¼Ÿ
     iotb_work_t *iotb_work = work_data;
 
-    iotb_work->fun(iotb_work->parameter);	//Ö´ĞĞ´«ÈëµÄiotb_work_t µÄº¯Êı
-    rt_free(iotb_work);		//ÕâÀïÓ¦¸ÃÊÇÊÍ·ÅµôÁË*work
+    iotb_work->fun(iotb_work->parameter);	//æ‰§è¡Œä¼ å…¥çš„iotb_work_t çš„å‡½æ•°
+    rt_free(iotb_work);		//è¿™é‡Œåº”è¯¥æ˜¯é‡Šæ”¾æ‰ä¼ å…¥çš„work_dataï¼Œåªæ‰§è¡Œä¸€æ¬¡ï¼Ÿ
 }
 
 struct rt_workqueue *iotb_work_hd_get(void)
@@ -92,14 +92,14 @@ rt_err_t iotb_workqueue_dowork(void (*func)(void *parameter), void *parameter)
 }
 
 
-//³õÊ¼»¯¹¤×÷¶ÓÁĞ
+//åˆå§‹åŒ–å·¥ä½œé˜Ÿåˆ—
 rt_err_t iotb_workqueue_start(void)
 {
-    static rt_int8_t iotb_work_started = 0;	//static¾Ö²¿±äÁ¿£¬Ö»¸³ÖµÒ»´Î
+    static rt_int8_t iotb_work_started = 0;	//staticå±€éƒ¨å˜é‡ï¼Œåªèµ‹å€¼ä¸€æ¬¡
 
-    if (iotb_work_started == 0)	//Ò²¾ÍÊÇÕâÀïÖ»³õÊ¼»¯Ò»´Î
+    if (iotb_work_started == 0)	//ä¹Ÿå°±æ˜¯è¿™é‡Œåªåˆå§‹åŒ–ä¸€æ¬¡
     {
-		//´´½¨Ò»¸ö¹¤×÷¶ÓÁĞ
+		//åˆ›å»ºä¸€ä¸ªå·¥ä½œé˜Ÿåˆ—
         iotb_work_hd = rt_workqueue_create("iotb_job", 2048, RT_THREAD_PRIORITY_MAX/2-2);
         if (iotb_work_hd == RT_NULL)
         {

@@ -19,41 +19,41 @@ typedef void (*iotb_lcd_handle)(void*);
 
 typedef enum
 {
-    IOTB_LCD_CTL_OPEN = 0,
-    IOTB_LCD_CTL_SHUTDOWN,
-    IOTB_LCD_CTL_POWERSAVE_ENTER,
-    IOTB_LCD_CTL_POWERSAVE_EXIT
+    IOTB_LCD_CTL_OPEN = 0,			//CTL？
+    IOTB_LCD_CTL_SHUTDOWN,			//CTL关机
+    IOTB_LCD_CTL_POWERSAVE_ENTER,	//CTL省电
+    IOTB_LCD_CTL_POWERSAVE_EXIT		//CTL省电中断
 } iotb_lcd_ctl_t;
 
 typedef enum
 {
-    IOTB_LCD_CONTENT_NONE = 0,
-    IOTB_LCD_STATIC_CONTENT,
-    IOTB_LCD_DYNAMIC_CONTENT
+    IOTB_LCD_CONTENT_NONE = 0,		//没有内容
+    IOTB_LCD_STATIC_CONTENT,		//静态内容
+    IOTB_LCD_DYNAMIC_CONTENT		//动态内容，会在页面中相应一些事件，比如按键事件
 } iotb_lcd_content_type_t;
 
 typedef enum
 {
-    IOTB_LCD_EVENT_NONE                 = (1 << 0),  // 1
-    IOTB_LCD_EVENT_ENTER                = (1 << 1),  // 2
+    IOTB_LCD_EVENT_NONE                 = (1 << 0),  // 1空
+    IOTB_LCD_EVENT_ENTER                = (1 << 1),  // 2开始
     IOTB_LCD_EVENT_ENTER_SUCC           = (1 << 2),  // 4
-    IOTB_LCD_EVENT_ENTER_FAIL           = (1 << 3),  // 8
-    IOTB_LCD_EVENT_EXIT                 = (1 << 4),  // 1
-    IOTB_LCD_EVENT_EXIT_RECEVD          = (1 << 5),  // 2
-    IOTB_LCD_EVENT_EXIT_FAIL            = (1 << 6),  // 4
-    IOTB_LCD_EVENT_RESET                = (1 << 7),  // 8
+    IOTB_LCD_EVENT_ENTER_FAIL           = (1 << 3),  // 8失败
+    IOTB_LCD_EVENT_EXIT                 = (1 << 4),  // 1中断
+    IOTB_LCD_EVENT_EXIT_RECEVD          = (1 << 5),  // 2接收中断
+    IOTB_LCD_EVENT_EXIT_FAIL            = (1 << 6),  // 4中断失败
+    IOTB_LCD_EVENT_RESET                = (1 << 7),  // 8重置
     IOTB_LCD_EVENT_KEY2                 = (1 << 8),  // 1
     IOTB_LCD_EVENT_KEY1                 = (1 << 9),  // 2
     IOTB_LCD_EVENT_WKUP                 = (1 << 10), // 4
-    IOTB_LCD_EVENT_SMARTCONFIG_START    = (1 << 11), // 8
-    IOTB_LCD_EVENT_SMARTCONFIG_STARTED  = (1 << 12), // 8
-    IOTB_LCD_EVENT_SMARTCONFIG_FINISH   = (1 << 13), // 1
-    IOTB_LCD_EVENT_PM_START             = (1 << 14), //
-    IOTB_LCD_EVENT_PM_WKUP              = (1 << 15), //
-    IOTB_LCD_EVENT_PREV                 = (1 << 16), // ignore
-    IOTB_LCD_EVENT_NEXT                 = (1 << 17), //
-    IOTB_LCD_EVENT_START_DEV_INFO_GET   = (1 << 18), //
-    IOTB_LCD_EVENT_STOP_DEV_INFO_GET    = (1 << 19), //
+    IOTB_LCD_EVENT_SMARTCONFIG_START    = (1 << 11), // 8smart config 开始
+    IOTB_LCD_EVENT_SMARTCONFIG_STARTED  = (1 << 12), // 8smart config 启动
+    IOTB_LCD_EVENT_SMARTCONFIG_FINISH   = (1 << 13), // 1smart config 完成
+    IOTB_LCD_EVENT_PM_START             = (1 << 14), //	 电源管理开始
+    IOTB_LCD_EVENT_PM_WKUP              = (1 << 15), //	 电源管理唤醒
+    IOTB_LCD_EVENT_PREV                 = (1 << 16), //  上一个（忽略？）
+    IOTB_LCD_EVENT_NEXT                 = (1 << 17), //	 下一个
+    IOTB_LCD_EVENT_START_DEV_INFO_GET   = (1 << 18), //	 开始获取设备信息
+    IOTB_LCD_EVENT_STOP_DEV_INFO_GET    = (1 << 19), //	 停止获取设备信息
     IOTB_LCD_EVENT_MAX                  = (1 << 30)
 } iotb_lcd_event_t;
 
@@ -64,9 +64,9 @@ typedef struct
 {
     uint16_t menu;
     uint16_t refresh_time; /* unit: os tick cnt */
-    iotb_lcd_content_type_t content_type;
-    iotb_lcd_event_t current_event;
-    iotb_lcd_handle lcd_handle;
+    iotb_lcd_content_type_t content_type;	//屏幕显示内容类型
+    iotb_lcd_event_t current_event;			//事件类型
+    iotb_lcd_handle lcd_handle;				//这是个函数指针
 } iotb_lcd_menu_t;
 
 #define IOTB_LCD_THR_CYCLE (50)
