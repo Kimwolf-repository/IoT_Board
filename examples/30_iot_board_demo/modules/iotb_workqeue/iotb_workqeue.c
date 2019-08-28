@@ -26,19 +26,24 @@
 
 static struct rt_workqueue * iotb_work_hd = RT_NULL;
 
+//板级工作队列结构体
 typedef struct
 {
-    struct rt_work work;
-    void (*fun)(void *parameter);
-    void *parameter;
+    struct rt_work work;	//内核提供的工作结构体，包含函数指针和传入参数
+    void (*fun)(void *parameter);	//额外的函数指针？
+    void *parameter;				//额外的参数？
 } iotb_work_t;
 
+//板级工作队列函数
+//work,内核提供的工作结构体指针
+//work_data，传入参数
 static void iotb_workqueue_fun(struct rt_work *work, void *work_data)
 {
+	//传入的work_data是iotb_work_t* ？
     iotb_work_t *iotb_work = work_data;
 
-    iotb_work->fun(iotb_work->parameter);
-    rt_free(iotb_work);
+    iotb_work->fun(iotb_work->parameter);	//执行传入的iotb_work_t 的函数
+    rt_free(iotb_work);		//这里应该是释放掉了*work
 }
 
 struct rt_workqueue *iotb_work_hd_get(void)
@@ -86,12 +91,15 @@ rt_err_t iotb_workqueue_dowork(void (*func)(void *parameter), void *parameter)
     return err;
 }
 
+
+//初始化工作队列
 rt_err_t iotb_workqueue_start(void)
 {
-    static rt_int8_t iotb_work_started = 0;
+    static rt_int8_t iotb_work_started = 0;	//static局部变量，只赋值一次
 
-    if (iotb_work_started == 0)
+    if (iotb_work_started == 0)	//也就是这里只初始化一次
     {
+		//创建一个工作队列
         iotb_work_hd = rt_workqueue_create("iotb_job", 2048, RT_THREAD_PRIORITY_MAX/2-2);
         if (iotb_work_hd == RT_NULL)
         {
