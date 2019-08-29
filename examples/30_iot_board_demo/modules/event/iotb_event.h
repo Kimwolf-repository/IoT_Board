@@ -14,13 +14,13 @@
 
 typedef enum
 {
-    IOTB_EVENT_SRC_NONE,		//¿Õ
-    IOTB_EVENT_SRC_KEY0,		//°´¼ü0ÊÂ¼þ
-    IOTB_EVENT_SRC_KEY1,		//°´¼ü1
-    IOTB_EVENT_SRC_KEY2,		//°´¼ü2
-    IOTB_EVENT_SRC_KEYWKUP,		//°´¼ü»½ÐÑ
-    IOTB_EVENT_SRC_WIFI,		//wifiÊÂ¼þ
-    IOTB_EVENT_SRC_PM,			//ÄÚ´æ¹ÜÀíÊÂ¼þ
+    IOTB_EVENT_SRC_NONE,		//ç©º
+    IOTB_EVENT_SRC_KEY0,		//æŒ‰é”®0äº‹ä»¶
+    IOTB_EVENT_SRC_KEY1,		//æŒ‰é”®1
+    IOTB_EVENT_SRC_KEY2,		//æŒ‰é”®2
+    IOTB_EVENT_SRC_KEYWKUP,		//æŒ‰é”®å”¤é†’
+    IOTB_EVENT_SRC_WIFI,		//wifiäº‹ä»¶
+    IOTB_EVENT_SRC_PM,			//åŠŸè€—ç®¡ç†äº‹ä»¶
     IOTB_EVENT_SRC_MAX
 } iotb_event_src_t;
 
@@ -28,27 +28,27 @@ typedef enum
 {
     /* key */
     IOTB_EVENT_TYPE_NONE,					//
-    IOTB_EVENT_TYPE_KEY_CLICK,				//°´ÏÂ
-    IOTB_EVENT_TYPE_KEY_LONG_PRESSED,		//³¤°´
-    IOTB_EVENT_TYPE_KEY_LONG_PRESSED_UP,	//³¤°´µ¯Æð
+    IOTB_EVENT_TYPE_KEY_CLICK,				//æŒ‰ä¸‹
+    IOTB_EVENT_TYPE_KEY_LONG_PRESSED,		//é•¿æŒ‰
+    IOTB_EVENT_TYPE_KEY_LONG_PRESSED_UP,	//é•¿æŒ‰å¼¹èµ·
 
     /* wifi */
-    IOTB_EVENT_TYPE_WIFI_UP,				//wifiÁ¬½Ó
-    IOTB_EVENT_TYPE_WIFI_DOWN,				//wifi¶Ï¿ª
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_STARTED,	//¿ªÊ¼ÅäÍø
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_FAILED,	//ÅäÍøÊ§°Ü
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_SUCCESS,	//ÅäÍø³É¹¦
+    IOTB_EVENT_TYPE_WIFI_UP,				//wifiè¿žæŽ¥
+    IOTB_EVENT_TYPE_WIFI_DOWN,				//wifiæ–­å¼€
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_STARTED,	//å¼€å§‹é…ç½‘
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_FAILED,	//é…ç½‘å¤±è´¥
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_SUCCESS,	//é…ç½‘æˆåŠŸ
 
     /* PM */
-    IOTB_EVENT_TYPE_PM_START,				//µçÔ´¹ÜÀí¿ªÆô
-    IOTB_EVENT_TYPE_PM_WKUP,				//µçÔ´¹ÜÀí½áÊø
+    IOTB_EVENT_TYPE_PM_START,				//ç”µæºç®¡ç†å¼€å¯
+    IOTB_EVENT_TYPE_PM_WKUP,				//ç”µæºç®¡ç†ç»“æŸ
     IOTB_EVENT_TYPE_MAX
 } iotb_event_type_t;
 
 typedef struct _event
 {
-    iotb_event_src_t  event_src;			//ÊÂ¼þÔ´
-    iotb_event_type_t event_type;			//ÊÂ¼þÀàÐÍ
+    iotb_event_src_t  event_src;			//äº‹ä»¶æº
+    iotb_event_type_t event_type;			//äº‹ä»¶ç±»åž‹
 } iotb_event_t;
 
 typedef struct _event_msg
