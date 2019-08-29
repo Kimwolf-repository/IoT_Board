@@ -14,41 +14,41 @@
 
 typedef enum
 {
-    IOTB_EVENT_SRC_NONE,
-    IOTB_EVENT_SRC_KEY0,
-    IOTB_EVENT_SRC_KEY1,
-    IOTB_EVENT_SRC_KEY2,
-    IOTB_EVENT_SRC_KEYWKUP,
-    IOTB_EVENT_SRC_WIFI,
-    IOTB_EVENT_SRC_PM,
+    IOTB_EVENT_SRC_NONE,		//空
+    IOTB_EVENT_SRC_KEY0,		//按键0事件
+    IOTB_EVENT_SRC_KEY1,		//按键1
+    IOTB_EVENT_SRC_KEY2,		//按键2
+    IOTB_EVENT_SRC_KEYWKUP,		//按键唤醒
+    IOTB_EVENT_SRC_WIFI,		//wifi事件
+    IOTB_EVENT_SRC_PM,			//内存管理事件
     IOTB_EVENT_SRC_MAX
 } iotb_event_src_t;
 
 typedef enum
 {
     /* key */
-    IOTB_EVENT_TYPE_NONE,
-    IOTB_EVENT_TYPE_KEY_CLICK,
-    IOTB_EVENT_TYPE_KEY_LONG_PRESSED,
-    IOTB_EVENT_TYPE_KEY_LONG_PRESSED_UP,
+    IOTB_EVENT_TYPE_NONE,					//
+    IOTB_EVENT_TYPE_KEY_CLICK,				//按下
+    IOTB_EVENT_TYPE_KEY_LONG_PRESSED,		//长按
+    IOTB_EVENT_TYPE_KEY_LONG_PRESSED_UP,	//长按弹起
 
     /* wifi */
-    IOTB_EVENT_TYPE_WIFI_UP,
-    IOTB_EVENT_TYPE_WIFI_DOWN,
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_STARTED,
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_FAILED,
-    IOTB_EVENT_TYPE_WIFI_AIRKISS_SUCCESS,
+    IOTB_EVENT_TYPE_WIFI_UP,				//wifi连接
+    IOTB_EVENT_TYPE_WIFI_DOWN,				//wifi断开
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_STARTED,	//开始配网
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_FAILED,	//配网失败
+    IOTB_EVENT_TYPE_WIFI_AIRKISS_SUCCESS,	//配网成功
 
     /* PM */
-    IOTB_EVENT_TYPE_PM_START,
-    IOTB_EVENT_TYPE_PM_WKUP,
+    IOTB_EVENT_TYPE_PM_START,				//电源管理开启
+    IOTB_EVENT_TYPE_PM_WKUP,				//电源管理结束
     IOTB_EVENT_TYPE_MAX
 } iotb_event_type_t;
 
 typedef struct _event
 {
-    iotb_event_src_t  event_src;
-    iotb_event_type_t event_type;
+    iotb_event_src_t  event_src;			//事件源
+    iotb_event_type_t event_type;			//事件类型
 } iotb_event_t;
 
 typedef struct _event_msg
